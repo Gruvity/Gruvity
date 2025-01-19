@@ -1,0 +1,345 @@
+<html>
+<title>
+Gruvity | What Gets Up Must Get Down
+</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/2bitdesigns/4bitcss@latest/css/Rapture.css" rel="stylesheet">
+<meta name="viewport" content="width=device-width" />
+<style>
+body {
+    min-height: 100vh;
+}
+
+.bottom-menu {
+    position: fixed;
+    bottom: 1%;
+    width: 100%;
+    text-align: center;
+    display: float;
+	z-index: 100;
+}
+</style>
+<body>
+<script type="module">
+
+const urlPatterns = {
+    meme: /https:\/\/media\.tenor\.com\/.+?\b/gi,
+    spotify: /https:\/\/open.spotify.com\/.+?\b/gi,
+    twitter: /https:\/\/x.com\/.+?\b/gi,
+    tiktok: /https:\/\/www.tiktok.com\/.+?\b/gi,
+    tumblr: /https:\/\/www.tumblr.com\/.+?\b/gi,
+    facebook: /https:\/\/www.facebook.com\/.+?\b/gi,
+    instagram: /https:\/\/www.instagram.com\/.+?\b/gi,
+    youtube: /https:\/\/(?:youtube\.com|youtu\.be)\/.+?\b/gi,
+    reddit: /https:\/\/www.reddit.com\/.+?\b/gi,
+    discord: /https:\/\/discord.com\/.+?\b/gi,
+    twitch: /https:\/\/www.twitch.tv\/.+?\b/gi,
+    github: /https:\/\/github.com\/.+?\b/gi,
+    soundcloud: /https:\/\/soundcloud.com\/.+?\b/gi
+}
+const textPatterns = {
+    post: /^.+$/g,
+    emoji: /\p{Emoji_Presentation}+/gui
+}
+
+const oEmbedProviders = {
+    reddit: "https://www.reddit.com/oembed",
+    youtube: "https://www.youtube.com/oembed",
+    tumblr: "https://www.tumblr.com/oembed/1.0",
+    spotify: "https://open.spotify.com/oembed",
+    soundcloud: "https://soundcloud.com/oembed",
+    instagram: "https://graph.facebook.com/v16.0/instagram_oembed"
+}
+const patterns = {}
+patterns['posts'] = /^.+$/g
+patterns['emoji'] = /\p{Emoji_Presentation}+/gui
+patterns['meme'] = /https:\/\/media\.tenor\.com\/.+?\b/gi
+patterns['spotify'] = /https:\/\/open.spotify.com\/.+?\b/gi
+patterns['twitter'] = /https:\/\/x.com\/.+?\b/gi
+patterns['tiktok'] = /https:\/\/www.tiktok.com\/.+?\b/gi
+patterns['tumblr'] = /https:\/\/www.tumblr.com\/.+?\b/gi
+patterns['facebook'] = /https:\/\/www.facebook.com\/.+?\b/gi
+patterns['instagram'] = /https:\/\/www.instagram.com\/.+?\b/gi
+patterns['youtube'] = /https:\/\/(?:youtube\.com|youtu\.be)\/.+?\b/gi
+patterns['reddit'] = /https:\/\/www.reddit.com\/.+?\b/gi
+patterns['twitch'] = /https:\/\/www.twitch.tv\/.+?\b/gi
+patterns['github'] = /https:\/\/github.com\/.+?\b/gi
+patterns['soundcloud'] = /https:\/\/soundcloud.com\/.+?\b/gi
+const matches = {}
+// Create WebSocket connection.
+const socket = new WebSocket("wss://jetstream2.us-west.bsky.network/subscribe?wantedCollections=app.bsky.feed.post");
+
+
+
+// Connection opened
+socket.addEventListener("open", (event) => {
+  console.log("Connected to server");
+});
+
+// Listen for messages
+socket.addEventListener("message", (event) => {
+    //const onlyUrls = /"uri"\:/;        
+    const data = JSON.parse(event.data);
+    rain(data, event.data);
+});
+
+var raindropPrototype = document.getElementById("raindropPrototype");
+var sky = document.getElementById("sky");
+
+var chanceOfRain = 69
+var raindropLimit = 42
+var forceDueToGruvity = 98.6
+var memeCounts = {}
+var allRaindrops = []
+var total = {
+    memes: 0,
+    emoji: 0,
+    posts: 0,
+    patterns: {},
+    tags: {}
+}
+var memeTotal = 0
+var emojiTotal = 0
+var postTotal = 0
+var raining = true
+
+
+
+//sky.setAttribute("viewbox", `0 0 ${window.screen.availWidth} ${window.screen.availHeight}`)
+
+async function ClearSkies() {
+    sky.textContent = ''
+    for (let raindrop of sky.getElementsByTagName("svg")) {
+        raindrop.remove()
+    }
+}
+
+async function StopRaining() {
+    raining = false
+    for (let raindrop of sky.getElementsByTagName("svg")) {
+        raindrop.pauseAnimations()
+    }
+}
+
+async function StartRaining() {
+    raining = true
+    for (let raindrop of sky.getElementsByTagName("svg")) {
+        raindrop.unpauseAnimations()
+    }
+}
+
+async function SetForce() {
+    let raindropAnimations = document.getElementsByClassName("raindrop-animation"); 
+    let forcePercent = forceDueToGruvity/100
+    for (let raindropAnimation of raindropAnimations) {
+        let originalDuration = Number(raindropAnimation.dataset["originalDuration"])
+        if (! originalDuration) { continue }
+        let newForce = originalDuration * forcePercent
+        raindropAnimation.setAttribute("dur", newForce + "s")
+    }
+}
+
+document.getElementById("pause-icon").addEventListener("click", async () => {    
+    if (raining) {
+        StopRaining()
+    } else {
+        StartRaining()
+    }
+})
+
+document.getElementById("clear-icon").addEventListener("click", ClearSkies)
+
+document.getElementById("force-of-gruvity").addEventListener("input", async (e) => {
+    if (e.target.value == e.target.max) { 
+        forceDueToGruvity = e.target.max
+    } else {
+        forceDueToGruvity = (e.target.max - e.target.min) * 100/e.target.value
+    }
+        
+    SetForce()
+})
+
+document.getElementById("chance-of-rain").addEventListener("input", async (e) => {    
+    chanceOfRain = e.target.value
+})
+
+async function rainOEmbed() {
+    
+}
+
+async function rain(data, text) {    
+    if (! total.patterns['posts']) { total.patterns['posts'] = 0 }
+    total.patterns['posts']++
+    if (! raining) {
+        StopRaining()
+        return
+    }
+    let embed = data?.commit?.record?.embed;
+    let externalLink = data?.commit?.record?.embed?.external?.uri;
+    let embedType = data?.commit?.record?.embed?.["$type"];
+    let postText = data?.commit?.record?.text;
+    let postFacets = data?.commit?.record?.facets;
+    if (embed && embedType && embedType.match("image")) {
+        externalLink = data?.commit?.record?.embed?.image?.uri;
+    }
+
+    let newRaindrops = [];
+    
+    
+    if (! externalLink) { return }
+    if ((Math.random() * 100) > chanceOfRain) {        
+        return
+    }
+    
+    let recordType = data?.commit?.record?.$type;
+    let postLink = `https://bsky.app/profile/${data.did}/${recordType.split(".").pop()}/${data.commit.rkey}`
+
+    for (let pattern in patterns) {
+        let textMatches = postText?.matchAll(patterns[pattern]);
+        if (textMatches) {
+            if (! matches[pattern]) { matches[pattern] = [] }
+            let matchResults = [...textMatches];
+            if (! total.patterns[pattern]) { total.patterns[pattern] = 0 }
+            for (let match of matchResults) {
+                matches[pattern].push(match);
+                total.patterns[pattern]++
+            }            
+        }
+        let linkMatches = externalLink?.matchAll(patterns[pattern]);
+        if (linkMatches) {
+            if (! matches[pattern]) { matches[pattern] = [] }
+            let matchResults = [...linkMatches];
+            if (! total.patterns[pattern]) { total.patterns[pattern] = 0 }
+            for (let match of matchResults) {
+                matches[pattern].push(match);
+                total.patterns[pattern]++
+            }            
+        }
+    }
+    
+    if (externalLink && externalLink.match(patterns.meme)) {
+        let newRaindrop = raindropPrototype.cloneNode(true);
+        newRaindrop.setAttribute("y", 0 - (Math.random() * 100) + "%");
+        newRaindrop.getElementsByTagName("image")[0].setAttribute("href", externalLink);
+        
+        if (! memeCounts[externalLink]) { memeCounts[externalLink] = 0 }
+        memeCounts[externalLink]++        
+        newRaindrops.push(newRaindrop)
+    }
+
+    if (postText && postText.match(patterns.emoji)) {
+        let newRaindrop = raindropPrototype.cloneNode(true);
+        newRaindrop.setAttribute("y", 0 - (Math.random() * 100) + "%");
+        newRaindrop.getElementsByClassName("raindrop-emoji")[0].textContent = postText.match(patterns.emoji)[0];
+        newRaindrops.push(newRaindrop);
+        emojiTotal++;    
+    }
+
+    if (postFacets) {
+        for (let facet of postFacets) {
+            for (let facetFeature of facet.features) {
+                let facetFeatureType = facetFeature.$type;
+                if (facetFeatureType == "app.bsky.richtext.facet#tag") {
+                    let newRaindrop = raindropPrototype.cloneNode(true);
+                    newRaindrop.setAttribute("y", 0 - (Math.random() * 100) + "%");
+                    newRaindrop.getElementsByClassName("raindrop-tag")[0].textContent = `#${facetFeature.tag}`
+                    newRaindrops.push(newRaindrop)
+                    if (! total.tags[facet.tag]) { total.tags[facet.tag] = 0 }                    
+                    total.tags[facet.tag]++                    
+                }
+            }            
+        }
+    }
+    
+    
+    for (let newRaindrop of newRaindrops) {        
+        newRaindrop.setAttribute("x", Math.random() * 100 + "%");
+        newRaindrop.setAttribute("y", 0 - (Math.random() * 100) + "%");
+        var clampedWidth = Math.max(Math.random() * 42, 9.8);
+        newRaindrop.setAttribute("width", clampedWidth + "%");
+        let raindropLinks = newRaindrop.getElementsByClassName("raindrop-link")[0].setAttribute("href", postLink);
+        
+        var raindropAnimations = newRaindrop.getElementsByClassName("raindrop-animation");
+        let gruvityDuration = Math.max(Math.random() * 9.8, 4.2)
+        let clampedDuration = gruvityDuration * (forceDueToGruvity/100);
+        for (var i = 0; i < raindropAnimations.length; i++) {
+            raindropAnimations[i].dataset["originalDuration"] = gruvityDuration
+            if (raindropAnimations[i].getAttribute("attributeName") == "y") {
+                raindropAnimations[i].setAttribute("from", 0 - (Math.random() * 100) + "%");
+            }
+            if (raindropAnimations[i].getAttribute("attributeName") == "width") {
+                raindropAnimations[i].setAttribute("from", clampedWidth + "%");
+                raindropAnimations[i].setAttribute("to", clampedWidth/10 + "%");
+            }
+            raindropAnimations[i].setAttribute("dur", clampedDuration + "s");            
+        }        
+        newRaindrop.setAttribute("aria-label", postText)
+        newRaindrop.dataset.post = text
+        sky.appendChild(newRaindrop)
+
+        if (allRaindrops.length > raindropLimit) {
+            allRaindrops[0].remove()
+            allRaindrops.shift()
+        }        
+        
+        allRaindrops.push(newRaindrop)
+    }
+    
+    let patternTotalMessage = []
+    for (let pattern in patterns) {        
+        if (total.patterns[pattern] &&  total.patterns[pattern] > 0) {
+            patternTotalMessage.push(`${pattern}: ${total.patterns[pattern]}`)
+        }        
+    }
+    document.getElementById("pattern-totals").innerHTML = patternTotalMessage.join("<br />")
+}
+
+</script>
+<div id="atmosphere" style="display: none;">
+    <svg width="100%" height="100%" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" style="display: float" class="space" id="atmosphere">
+        <svg width="100%" height="100%" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" x="0%" y="0%" viewBox="0 0 100 100" style="display: float" class="svg-raindrop" id="raindropPrototype">
+            <a class="raindrop-link" target="_blank">
+                <metadata class="raindrop-metadata"></metadata>
+                <circle cx="50%" cy="50%" r="10%" fill="transparent" />
+                <image width="100%" height="100%" class="raindrop-image">
+                    <animate attributeName="width" from="100%" to="0%" dur="4.2s" class="raindrop-animation" repeatCount="indefinite"  >
+                </image>
+                <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle" font-size="1.6em" class="raindrop-text foreground-fill">
+                    <tspan class="raindrop-emoji"></tspan>
+                    <tspan class="raindrop-tag" font-size=".6em"></tspan>
+                    <animate attributeName="font-size" from="1.6em" to=".16em" dur="4.2s" class="raindrop-animation" repeatCount="indefinite"  />
+                </text>
+            </a>
+            <animate attributeName="y" from="-100%" to="300%" dur="4.2s" class="raindrop-animation" repeatCount="indefinite" />
+            <animate attributeName="opacity" values="1;0" dur="4.2s" class="raindrop-animation" repeatCount="indefinite" />
+        </svg>
+    </svg>    
+</div>
+<div id="menuoverlay" style="position:fixed; bottom: 0%; top: 0%; height: 100%; left:0%; width: 100%;">
+    <div id="pattern-totals" style="z-index: 50;">        
+    </div>        
+</div>
+<menu class="bottom-menu">
+    <button aria-label="pause" id="pause-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="5%" height="5%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-pause">
+            <rect x="6" y="4" width="4" height="16"></rect>
+            <rect x="14" y="4" width="4" height="16"></rect>
+        </svg>
+    </button>
+    <button aria-label="clear" id="clear-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="5%" height="5%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x-circle">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>
+    </button>
+    <br/>
+    <input type="range" id="force-of-gruvity" value="100" min="25" max="175" step="1" />
+    <input type="range" id="chance-of-rain" value="90" min="0" max="100" step="1" />
+</menu>
+<div id="skydiv" style="position:fixed; bottom: 0%; top:0% ;height: 100%; left:0%; width:100%">
+    <svg width="100%" height="100%" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg" style="display: float" class="sky" id="sky">
+    </svg>
+</div>
+
+</body>
+</html>

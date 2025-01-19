@@ -53,22 +53,24 @@ const patterns = {}
 patterns['posts'] = /^.+$/g
 patterns['emoji'] = /\p{Emoji_Presentation}+/gui
 patterns['meme'] = /https:\/\/media\.tenor\.com\/.+?\b/gi
-patterns['spotify'] = /https:\/\/open.spotify.com\/.+?\b/gi
-patterns['twitter'] = /https:\/\/x.com\/.+?\b/gi
-patterns['tiktok'] = /https:\/\/www.tiktok.com\/.+?\b/gi
-patterns['tumblr'] = /https:\/\/www.tumblr.com\/.+?\b/gi
-patterns['facebook'] = /https:\/\/www.facebook.com\/.+?\b/gi
-patterns['instagram'] = /https:\/\/www.instagram.com\/.+?\b/gi
-patterns['youtube'] = /https:\/\/(?:youtube\.com|youtu\.be)\/.+?\b/gi
-patterns['reddit'] = /https:\/\/www.reddit.com\/.+?\b/gi
-patterns['twitch'] = /https:\/\/www.twitch.tv\/.+?\b/gi
+patterns['spotify'] = /https:\/\/open.spotify\.com\/.+?\b/gi
+patterns['twitter'] = /https:\/\/(?:www\.)?(?:x|twitter)\.com\/.+?\b/gi
+patterns['tiktok'] = /https:\/\/(?:www\.)?tiktok.com\/.+?\b/gi
+patterns['tumblr'] = /https:\/\/(?:www\.)?tumblr.com\/.+?\b/gi
+patterns['facebook'] = /https:\/\/(?:www\.)?facebook.com\/.+?\b/gi
+patterns['instagram'] = /https:\/\/(?:www\.)?instagram.com\/.+?\b/gi
+patterns['youtube'] = /https:\/\/(?:www\.)?(?:youtube\.com|youtu\.be)\/.+?\b/gi
+patterns['reddit'] = /https:\/\/(?:www\.)?.reddit.com\/.+?\b/gi
+patterns['twitch'] = /https:\/\/(?:www\.)?.twitch.tv\/.+?\b/gi
 patterns['github'] = /https:\/\/github.com\/.+?\b/gi
 patterns['soundcloud'] = /https:\/\/soundcloud.com\/.+?\b/gi
+patterns['gofundme'] = /https:\/\/(?:www\.)?gofundme.com\/.+?\b/gi
 const matches = {}
 // Create WebSocket connection.
-const socket = new WebSocket("wss://jetstream2.us-west.bsky.network/subscribe?wantedCollections=app.bsky.feed.post");
-
-
+let socketUri = "wss://jetstream2.us-west.bsky.network/subscribe"
+if (Math.random() > 0.5) { socketUri = "wss://jetstream2.us-east.bsky.network/subscribe" }
+if (Math.random() > 0.5) { socketUri = socketUri.replace("2","1") }
+const socket = new WebSocket(`${socketUri}?wantedCollections=app.bsky.feed.post`);
 
 // Connection opened
 socket.addEventListener("open", (event) => {

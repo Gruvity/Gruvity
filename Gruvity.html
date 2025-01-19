@@ -98,7 +98,7 @@ var sky = document.getElementById("sky");
 
 var chanceOfRain = 69
 var raindropLimit = 42
-var forceDueToGruvity = 42
+var forceDueToGruvity = 420
 var memeCounts = {}
 var allRaindrops = []
 var total = {
@@ -159,7 +159,7 @@ document.getElementById("force-of-gruvity").addEventListener("input", async (e) 
     if (e.target.value == e.target.max) { 
         forceDueToGruvity = e.target.max
     } else {
-        forceDueToGruvity = (e.target.max - e.target.min) * 100/e.target.value
+        forceDueToGruvity = ((e.target.max - e.target.min) * 100)/e.target.value
     }
         
     SetForce()
@@ -261,7 +261,8 @@ async function rain(data, text) {
     for (let newRaindrop of newRaindrops) {        
         newRaindrop.setAttribute("x", Math.random() * 100 + "%");
         newRaindrop.setAttribute("y", 0 - (Math.random() * 100) + "%");
-        var clampedWidth = Math.max(Math.random() * 42, 9.8);
+        var clampedWidth = Math.max(Math.random() * 84, 42)        
+        
         newRaindrop.setAttribute("width", clampedWidth + "%");
         let raindropLinks = newRaindrop.getElementsByClassName("raindrop-link")[0].setAttribute("href", postLink);
         
@@ -351,6 +352,7 @@ async function rain(data, text) {
             <rect x="14" y="4" width="4" height="16"></rect>
         </svg>
     </button>
+    <br/>
     <button aria-label="clear" id="clear-icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="5%" height="5%" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-x-circle">
             <circle cx="12" cy="12" r="10"></circle>
